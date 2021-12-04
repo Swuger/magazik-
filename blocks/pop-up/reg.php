@@ -10,7 +10,7 @@
 
         <h5 class="reg-modal__title">Регистрация</h5>
 
-        <form class="reg-modal__form" method="POST" action="/php-scripts/reg.php">
+        <form class="reg-modal__form" method="POST">
             <div class="reg-modal__input tel">
                 <input type="tel" placeholder="Телефон" name="tel" pattern="(\+?\d[- .]*){7,13}">
             </div>
@@ -21,15 +21,7 @@
                 <input type="password" placeholder="Подтвердите пароль" name="repeat_pass">
             </div>
 
-
-            <?php
-
-            if ($_SESSION) {
-                echo "<p id=\"regDenied\">" . $_SESSION['regMsg'] . "</p>";
-            }
-
-            unset($_SESSION['regMsg']);
-            ?>
+            <p id="regDenied"></p>
 
             <div class="reg-modal__options">
                 <div class="reg-modal__row">

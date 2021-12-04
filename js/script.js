@@ -437,9 +437,25 @@ $(function () {
 
     //-----------------------------------php--------------------------------
 
-    // $('.reg-modal__form').on('submit', function(e) {
+    $('.reg-modal__form').on('submit', function(e) {
+      e.preventDefault();
       
-    // });
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/registration.php',
+        data: 'contact_submit=1&' + $(this).serialize(),
+        dataType: 'json',
+        success: function(response) {
+          if (response.status === 0) {
+            $('#regDenied').html(response.message);
+          }
+          // console.log(response);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+       }
+      });
+    });
 
     // hoverable event
     function togglerOn(e) {

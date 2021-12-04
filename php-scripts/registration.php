@@ -1,13 +1,14 @@
 <?php
-session_start();
+header('Content-Type: application/json');
 
 require_once './connect.php';
 
-$tel = preg_replace("/\s+/", "", $_POST['tel']);
+$tel = $_POST['tel'];
 $pass = $_POST['pass'];
-$passReapat = $_POST['repeat_pass'];
+$repeatPass = $_POST['repeat_pass'];
 $politics = $_POST['politics'];
 
+$error = null;
 $query = mysqli_query($conn, "SELECT main_tel FROM users");
 
 while ($result = mysqli_fetch_assoc($query)) {
@@ -17,28 +18,34 @@ while ($result = mysqli_fetch_assoc($query)) {
     }
 }
 
-if ($tel === '' || $pass === '' || $passReapat === '') {
-    $_SESSION['regMsg'] = 'Заполните все поля.';
-    header('Location: /index.php');
+if ($tel === '' || $pass === '' || $repeatPass === '') {
+    $error = 'Заполните все поля.';
+    $responseStatus = 0;
 } else {
     if ($telDenied) {
-        $_SESSION['regMsg'] = 'Номер телефона уже зарегистрирован.';
-        header('Location: /index.php');
+        $error = 'Номер телефона уже зарегистрирован.';
+        $responseStatus = 0;
     } else {
-        if ($pass === $passReapat) {
+        if ($pass === $repeatPass) {
             if (!$politics) {
-                $_SESSION['regMsg'] = 'Примите условия соглашения.';
-                header('Location: /index.php');
+                $error = 'Примите условия соглашения.';
+                $responseStatus = 0;
             } else {
                 $query = "INSERT INTO users (main_tel, password) VALUES ($tel, '$pass')";
                 // mysqli_query($conn, $query);
-                $_SESSION['regMsg'] = 'da';
+                $error = 'da';
                 setcookie('authorized', true);
-                header('Location: /cabinet.php');
             }
         } else {
-            $_SESSION['regMsg'] = 'Пароли не совпадают.';
-            header('Location: /index.php');
+            $error = 'Пароли не совпадают.';
+            $responseStatus = 0;
         }
     }
 }
+
+$response = array(
+    'message' => $error,
+    'status' => $responseStatus
+);
+
+echo json_encode($response);
