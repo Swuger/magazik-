@@ -3,12 +3,12 @@ header('Content-Type: application/json');
 
 require_once './connect.php';
 
+// reg-modal vars
 $tel = $_POST['tel'];
 $pass = $_POST['pass'];
 $repeatPass = $_POST['repeat_pass'];
 $politics = $_POST['politics'];
 
-$error = null;
 $query = mysqli_query($conn, "SELECT main_tel FROM users");
 
 while ($result = mysqli_fetch_assoc($query)) {
@@ -18,6 +18,7 @@ while ($result = mysqli_fetch_assoc($query)) {
     }
 }
 
+// reg-script
 if ($tel === '' || $pass === '' || $repeatPass === '') {
     $error = 'Заполните все поля.';
     $responseStatus = 0;
@@ -32,9 +33,12 @@ if ($tel === '' || $pass === '' || $repeatPass === '') {
                 $responseStatus = 0;
             } else {
                 $query = "INSERT INTO users (main_tel, password) VALUES ($tel, '$pass')";
-                // mysqli_query($conn, $query);
-                $error = 'da';
-                setcookie('authorized', true);
+                if (mysqli_query($conn, $query)) {
+                    $lastId = mysqli_insert_id($conn);
+                }
+                $responseStatus = 1;
+                setcookie('authorized', $lastId, '', '/');
+                $error = null;
             }
         } else {
             $error = 'Пароли не совпадают.';
@@ -43,6 +47,7 @@ if ($tel === '' || $pass === '' || $repeatPass === '') {
     }
 }
 
+// ajax response
 $response = array(
     'message' => $error,
     'status' => $responseStatus

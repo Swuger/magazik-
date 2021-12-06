@@ -12,7 +12,7 @@
 
         <form class="reg-modal__form" method="POST">
             <div class="reg-modal__input tel">
-                <input type="tel" placeholder="Телефон" name="tel" pattern="(\+?\d[- .]*){7,13}">
+                <input type="tel" placeholder="Телефон" name="tel" pattern="\+?[789][0-9]{9,10}">
             </div>
             <div class="reg-modal__input pass">
                 <input type="password" placeholder="Пароль" name="pass">
@@ -35,7 +35,5 @@
             </div>
             <button class="reg-modal__btn" type="submit">Зарегистрироваться</button>
         </form>
-        <?php #include '/OpenServer/domains/shop/blocks/react/modal/reg-tel.php';
-        ?>
     </div>
 </div>

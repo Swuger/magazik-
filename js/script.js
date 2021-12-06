@@ -371,9 +371,41 @@ $(function() {
         $('.ordering__info-payment img').css({'left': `${placeholderLength}px`});
     });
 });
+
+function readCookie(name) {
+	var name_cook = name+"=";
+	var spl = document.cookie.split(";");
+	
+	for(var i=0; i<spl.length; i++) {
+		var c = spl[i];
+		while(c.charAt(0) == " ") {
+			c = c.substring(1, c.length);
+		}
+		if(c.indexOf(name_cook) == 0) {	
+			return c.substring(name_cook.length, c.length);
+		}
+	}
+	return null;
+}
+
 $(function() {
     $('.navbar__profile').on('click', () => {
+      if (readCookie('authorized') === null) {
         $('.log-modal').addClass('show');
+      } else {
+        location.href = '/cabinet.php';
+        }
+    });
+
+    if (readCookie('authorized') !== null) {
+      $('.person a span').html('Личный кабинет');
+    }
+    $('.person a').on('click', () => {
+      if (readCookie('authorized') === null) {
+        $('.log-modal').addClass('show');
+      } else {
+        location.href = '/cabinet.php';
+        }
     });
 
     $('.log-modal button:first-child').on('click', () => {
@@ -388,6 +420,17 @@ $(function() {
         $('.log-modal').removeClass('show');
         $('.reg-modal').addClass('show');
     });
+
+    $('.log-modal__forgot').on('click', function(e) {
+        e.preventDefault();
+        $('.log-modal').removeClass('show');
+        $('.forgot-pass').addClass('show');
+    });
+
+    $('.log-modal__btn--inactive').on('click', function() {
+        $('.log-modal').addClass('show');
+        $('.forgot-pass').removeClass('show');
+  });
 });
 $(function () {
     // global event
@@ -448,8 +491,64 @@ $(function () {
         success: function(response) {
           if (response.status === 0) {
             $('#regDenied').html(response.message);
+          } else {
+            location.href = '/cabinet.php';
           }
-          // console.log(response);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+       }
+      });
+    });
+
+
+    $('.log-modal__btn').on('click', function(e) {
+      e.preventDefault();
+      
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/login.php',
+        data: 'contact_submit=1&' + $('.log-modal__form').serialize(),
+        dataType: 'json',
+        success: function(response) {
+          if (response.status === 0) {
+            $('#logDenied').html(response.message);
+            console.log(response);
+          } else {
+            location.href = '/cabinet.php';
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+       }
+      });
+    });
+
+    $('#personal').on('click', function(e) {
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/cabinet-info.php',
+        success: function(response) {
+          console.log(response);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+       }
+      });
+    });
+
+    // CABINET
+
+    $('.cabinet__personal-form').on('submit', function(e) {
+      e.preventDefault();
+
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/cabinet-info.php',
+        data: 'contact_submit=1&' + $(this).serialize(),
+        dataType: 'json',
+        success: function(response) {
+          console.log(response.message);
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(errorThrown);
