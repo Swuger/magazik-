@@ -1,3 +1,6 @@
+<?php session_start();
+require_once 'php-scripts/connect.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,8 +20,9 @@
                 <div class="container">
                     <div class="page-content__wrapper">
                         <h1 class="booking">Поддержка</h1>
-                        <form class="booking-form" action="/">
-                            <textarea class="booking-form__input" placeholder="Напишите сообщение..."></textarea>
+                        <form class="booking-form" action="/php-scripts/support-msg.php">
+                            <textarea class="booking-form__input" placeholder="Напишите сообщение..." name="message"></textarea>
+                            <p id="regDenied"></p>
                             <button class="booking-form__btn" type="submit">Отправить</button>
                         </form>
                     </div>

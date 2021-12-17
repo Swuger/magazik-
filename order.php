@@ -1,3 +1,6 @@
+<?php session_start();
+require_once 'php-scripts/connect.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 

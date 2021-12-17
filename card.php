@@ -1,3 +1,8 @@
+<?php require_once 'php-scripts/connect.php'; 
+if (!isset($_GET['id'])) {
+    header("Location: /index.php");
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,31 +20,50 @@
         <main class="main">
             <div class="container">
                 <section class="card">
+                    <?php
+                    $result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM products WHERE id = {$_GET['id']}"));
+                    ?>
                     <div class="card-top">
                         <div class="card-top__img">
-
+                            <img src="<?= $result['product_img']; ?>" alt="image">
                         </div>
                         <aside class="card-sidebar info">
                             <div class="card-sidebar__row">
                                 <div class="card-sidebar__info">
-                                    <h5 class="card-sidebar__title">Говядина 250гр</h5>
+                                    <h5 class="card-sidebar__title">
+                                        <?= $result['product_name']; ?>
+                                        <?= $result['product_weight']; ?> гр
+                                    </h5>
                                     <div class="card-sidebar__stars">
-                                        <img src="./img/products/star.svg" alt="star">
-                                        <img src="./img/products/star.svg" alt="star">
-                                        <img src="./img/products/star.svg" alt="star">
-                                        <img src="./img/products/star.svg" alt="star">
-                                        <img src="./img/products/star.svg" alt="star">
+                                        <?php
+                                        $sql = mysqli_query($conn, "SELECT AVG(review) as avg FROM reviews WHERE product_id = {$_GET['id']}");
+                                        $avg = intval(round(mysqli_fetch_assoc($sql)['avg']));
+                                        if ($avg === 0) {
+                                            for ($i = 0; $i < 5; $i++) {
+                                                echo "<img src=\"/img/products/star.svg\">";
+                                            }
+                                        } else {
+                                            for ($i = 0; $i < $avg; $i++) {
+                                                echo "<img src=\"/img/star-green.svg\">";
+                                            }
+                                        }
+                                        ?>
                                     </div>
-                                    <p class="card-sidebar__review">Кол-во отзывов: <span>23</span></p>
+                                    <p class="card-sidebar__review">Кол-во отзывов: <span>
+                                        <?php
+                                        $count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) FROM reviews WHERE {$_GET['id']} = product_id"));
+                                        echo $count['COUNT(*)'];
+                                        ?>
+                                    </span></p>
                                 </div>
                                 <div class="card-sidebar__actions">
                                     <div class="card-sidebar__price">
                                         <p>Цена за уп.</p>
-                                        <span><b>1 050 &#8381;</b></span>
+                                        <b><span id="price"><?= $result['product_price']; ?></span> &#8381;</b>
                                     </div>
                                     <div class="card-sidebar__count">
                                         <p>Кол-во шт в упаковке </p>
-                                        <span>4 шт.</span>
+                                        <span><?= $result['product_count']; ?> шт.</span>
                                     </div>
                                     <div class="card-sidebar__quantity">
                                         <p>Количество </p>
@@ -55,11 +79,11 @@
                             <div class="card-sidebar__payment">
                                 <div class="card-sidebar__total">
                                     <p>Итого к оплате</p>
-                                    <span>1 050 &#8381;</span>
+                                    <span><span id="totalPrice"><?= $result['product_price']; ?></span> &#8381;</span>
                                 </div>
                                 <div class="card-sidebar__btns">
                                     <button class="card-sidebar__btns-buy">Купить</button>
-                                    <button class="card-sidebar__btns-cart"></button>
+                                    <a class="card-sidebar__btns-cart" href="#0"></a>
                                 </div>
                             </div>
                         </aside>
@@ -69,18 +93,20 @@
                             <nav class="card-nav">
                                 <ul class="card-nav__list">
                                     <li class="card-nav__list-item active">
-                                        <a class="card-nav__list-link" href="#">О товаре</a>
+                                        <a class="card-nav__list-link" href="#0">О товаре</a>
                                     </li>
                                     <li class="card-nav__list-item">
-                                        <a class="card-nav__list-link" href="#">Параметры</a>
+                                        <a class="card-nav__list-link" href="#0">Параметры</a>
                                     </li>
                                     <li class="card-nav__list-item">
-                                        <a class="card-nav__list-link" href="#">Отзывы</a>
+                                        <a class="card-nav__list-link" href="#0">Отзывы</a>
                                     </li>
                                 </ul>
                             </nav>
                             <!--content-->
-                            <?php include 'blocks/react/card/_reviews.php';?>
+                            <?php include 'blocks/react/card/_desc.php'; ?>
+                            <?php include 'blocks/react/card/_options.php'; ?>
+                            <?php include 'blocks/react/card/_reviews.php'; ?>
                         </div>
                         <aside class="card-sidebar bonus">
                             <p class="card-sidebar__promo">Закажите на 3000 RUB и получите</p>
@@ -98,10 +124,11 @@
                                     <span>0</span>
                                     <div class="progress-line">
                                         <img class="progress-circle" src="img/ellipse.svg" alt="circle">
+                                        <div></div>
                                     </div>
                                     <span>3000</span>
                                 </div>
-                                <p class="card-sidebar__sub-text">Осталось <span>988 RUB</span> до бесплатной доставки
+                                <p class="card-sidebar__sub-text">Осталось <span>3000 RUB</span> до бесплатной доставки
                                 </p>
                             </div>
                         </aside>

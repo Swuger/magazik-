@@ -6,7 +6,7 @@
 
         <h5 class="reviews-modal__title">Добавить отзыв</h5>
 
-        <form class="reviews-modal__form">
+        <form class="reviews-modal__form" method="POST">
             <div class="reviews-modal__row">
                 <p class="mark">Ваша оценка: </p>
                 <div class="reviews-modal__stars">
@@ -83,9 +83,11 @@
             </div>
             <div class="reviews-modal__row">
                 <label for="reviewText" class="review">Ваш отзыв: </label>
-                <textarea name="reviewText"></textarea>
+                <textarea name="reviewText" maxlength="500"></textarea>
                 <span>0 / 500</span>
             </div>
+
+            <p id="reviewDenied"></p>
 
             <button class="reviews-modal__btn" type="submit">Добавить отзыв</button>
         </form>

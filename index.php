@@ -1,4 +1,6 @@
-<?php session_start(); ?>
+<?php session_start();
+require_once 'php-scripts/connect.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,10 +13,6 @@
 </head>
 
 <body>
-    <?php
-
-
-    ?>
     <div class="wrapper">
         <?php include 'blocks/base/header.php'; ?>
         <main class="main">
@@ -22,21 +20,6 @@
                 <div class="slider">
                     <div id="prevBtn"></div>
                     <div id="nextBtn"></div>
-
-                    <!-- <div class="super-slider">
-                        <div class="slider">
-                            <div class="slider__inner">
-                                <div class="slide"></div>
-                                <div class="slide"></div>
-                                <div class="slide"></div>
-                                <div class="slide"></div>
-                            </div>
-                            <div class="nav-btns"></div>
-                        </div>
-                        <div class="left"></div>
-                        <div class="right"></div> 
-                    </div> -->
-
                     <div class="slider__inner">
                         <div class="slide" id="lastClone" draggable="false">
                             <div class="slide__content">
@@ -99,338 +82,94 @@
                     <div class="subslider__wrapper">
                         <ul class="subslider__inner">
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">СУПЫ</a>
+                                <a class="subslider__link" href="/index.php?filter=soup">СУПЫ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ХАЧАПУРИ</a>
+                                <a class="subslider__link" href="/index.php?filter=khachapuri">ХАЧАПУРИ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ХОЛОДНЫЕ ЗАКУСКИ</a>
+                                <a class="subslider__link" href="/index.php?filter=cold_snacks">ХОЛОДНЫЕ ЗАКУСКИ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ХИНКАЛИ</a>
+                                <a class="subslider__link" href="/index.php?filter=khinkali">ХИНКАЛИ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ШАШЛЫК</a>
+                                <a class="subslider__link" href="/index.php?filter=shashlik">ШАШЛЫК</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">СОУСЫ</a>
+                                <a class="subslider__link" href="/index.php?filter=sauce">СОУСЫ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">САЛАТЫ</a>
+                                <a class="subslider__link" href="/index.php?filter=salad">САЛАТЫ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ГОРЯЧИЕ БЛЮДА</a>
+                                <a class="subslider__link" href="/index.php?filter=hot_meals">ГОРЯЧИЕ БЛЮДА</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ГАРНИР</a>
+                                <a class="subslider__link" href="/index.php?filter=garnish">ГАРНИР</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">ДЕСЕРТЫ</a>
+                                <a class="subslider__link" href="/index.php?filter=desserts">ДЕСЕРТЫ</a>
                             </li>
                             <li class="subslider__item">
-                                <a class="subslider__link" href="#">НАПИТКИ</a>
+                                <a class="subslider__link" href="/index.php?filter=beverages">НАПИТКИ</a>
                             </li>
                         </ul>
                     </div>
                     <div class="subslider__btns">
                         <button class="subslider__arrow-prev">
-                            <img src="img/slider/arrow-left.svg" alt="">
+                            <img src="img/slider/arrow-left.svg" alt="left">
                         </button>
                         <button class="subslider__arrow-next">
-                            <img src="img/slider/arrow.svg" alt="">
+                            <img src="img/slider/arrow.svg" alt="right">
                         </button>
                     </div>
                 </div>
 
                 <section class="products">
-                    <h3 class="products__caption">Все товары</h3>
+                    <h3 class="products__caption"><a href="/index.php">Все товары</a></h3>
                     <div class="products__content">
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
+
+                        <?php
+                        if (!isset($_GET['filter'])) {
+                            $query = mysqli_query($conn, "SELECT * FROM products");
+                        } else {
+                            $query = mysqli_query($conn, "SELECT * FROM products WHERE product_category = '{$_GET['filter']}'");
+                        }
+                        $id = 1;
+                        while ($result = mysqli_fetch_assoc($query)) {
+                            $sql = mysqli_query($conn, "SELECT AVG(review) as avg FROM reviews WHERE product_id = $id");
+                        ?>
+                            <div class="product">
+                                <img class="product__img" src="<?= $result['product_img']; ?>" alt="product">
+                                <a class="product__title" href="/card.php?id=<?= $result['id']; ?>"><?= $result['product_name']; ?></a>
+                                <p class="product__text"><?= $result['product_desc'] ?></p>
+                                <div class="product__stars">
+                                    <?php
+                                    $avg = intval(round(mysqli_fetch_assoc($sql)['avg']));
+                                    if ($avg === 0) {
+                                        for ($i = 0; $i < 5; $i++) {
+                                            echo "<img src=\"/img/products/star.svg\">";
+                                        }
+                                    } else {
+                                        for ($i = 0; $i < $avg; $i++) {
+                                            echo "<img src=\"/img/star-green.svg\">";
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                                <div class="product__info">
+                                    <b class="product__price"><?= $result['product_price']; ?> ₽/кг</b>
+                                    <span class="product__weight">За <?= $result['product_weight']; ?>гр.</span>
+                                </div>
+                                <a class="product__to-cart" href="/php-scripts/cart-add.php?id=<?= $id; ?>">В корзину</a>
                             </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
-                        <div class="product">
-                            <img class="product__img" src="img/products/image.png" alt="product">
-                            <a class="product__title" href="#">Голень Говядины</a>
-                            <p class="product__text">Описание мраморной говядины, состоящее из нескольких преложений.
-                                Можно
-                                наполнить.</p>
-                            <div class="product__stars">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                                <img src="img/products/star.svg" alt="star">
-                            </div>
-                            <div class="product__info">
-                                <b class="product__price">1 050 ₽/кг</b>
-                                <span class="product__weight">За 500гр.</span>
-                            </div>
-                            <a class="product__to-cart" href="#">В корзину</a>
-                        </div>
+
+                        <?php
+                        $id++;
+                        }
+                        ?>
+
                     </div>
                 </section>
             </div>
@@ -450,10 +189,6 @@
         </main>
         <?php include 'blocks/base/footer.php'; ?>
         <div class="mask"></div>
-        <?php
-
-
-        ?>
     </div>
     <script src="js/script.js"></script>
 </body>

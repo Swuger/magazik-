@@ -284,43 +284,243 @@ $(function () {
     });
 });
 
+// tabs
+$(function() {
+  $('.cabinet__tab').on('click', function(e) {
+    $(this).siblings().removeClass('active');
+    $(this).addClass('active');
 
-$(function () {
-    $('.video__play-btn, .video__inner').on('click', function () {
-        $('.video__play-btn').fadeOut(400);
-        $('.video__inner').addClass('clicked');
-        $('.video__iframe').attr('src', 'https://www.youtube.com/embed/PfrRJYC4z6I?autoplay=1');
+    if ($(this).attr('id') === 'personal') {
+      $('.cabinet__inner').first().addClass('active');
+      $('.cabinet__inner').last().removeClass('active');
+    }
+
+    if ($(this).attr('id') === 'history') {
+      $('.cabinet__inner').last().addClass('active');
+      $('.cabinet__inner').first().removeClass('active');
+    }
+  });
+
+  $('.card-nav__list-item').on('click', function(e) {
+    $(this).addClass('active');
+    $(this).siblings().removeClass('active');
+    $('.card-nav__list-item').each(function(index) {
+      if ($(this).hasClass('active')) {
+        $($('.card-content__wrapper')[index]).addClass('active');
+        $($('.card-content__wrapper')[index]).siblings().removeClass('active');
+      }
     })
-});
-$(function () {
-    const input = $('.qty');
-    let counter = 1;
-    input.val(counter);
+  });
 
+  const totalPrice = parseInt($('.ordering__delivery-total span').text());
+  let flag = true;
+
+  $('.ordering__delivery-item').on('click', function(e) {
+    $(this).siblings().removeClass('active');
+    $(this).addClass('active');
+
+    if ($(this).attr('id') === 'deliveryTab') {
+      $($('.ordering__info')[0]).addClass('active');
+      $($('.ordering__info')[1]).removeClass('active');
+      if (localStorage.getItem('price') >= 3000) {
+        $('.total-delivery').html(`${0} &#8381;`);
+      } else {
+        $('.total-delivery').html(`${250} &#8381;`);
+      }
+      $('.ordering__delivery-total span').html(`${totalPrice} &#8381;`);
+      $('.ordering__info-form.delivery-form input').val('');
+      $('.ordering__info-form.pickup input').val('');
+    }
+    if ($(this).attr('id') === 'pickupTab') {
+      $($('.ordering__info')[1]).addClass('active');
+      $($('.ordering__info')[0]).removeClass('active');
+      $('.total-delivery').html(`${0} &#8381;`);
+      if (flag) {
+        $('.ordering__delivery-total span').html(`${parseInt($('.ordering__delivery-total span').text()) - (parseInt($('.ordering__delivery-total span').text()) * 0.2)} &#8381;`);
+        flag = false;
+      }
+      $('.ordering__info-form.delivery-form input').val('');
+      $('.ordering__info-form.pickup input').val('');
+    }
+  });
+
+});
+
+if (localStorage.getItem('price') > 3000) {
+  localStorage.setItem('price', 3000);
+}
+
+
+
+$('.card-sidebar__accept-btn').on('click', function(e) {
+  localStorage.setItem('totalPrice', parseInt($('.card-sidebar__total-pay span').text()));
+});
+
+
+const input = $('.qty');
+let total = 0;
+for (let i = 0; i < $('.cart__goods-item').length; i++) {
+  total += parseInt($($('.cart__goods-price span')[i]).text());
+}
+$('.card-sidebar__total-amount span span').html(total);
+$('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__total-pay span').text())} &#8381;`);
+
+
+if (localStorage.getItem('price') >= 3000) {
+  $('.ordering__delivery-total span').html(`${parseInt(localStorage.getItem('totalPrice'))}`);
+} else {
+  $('.ordering__delivery-total span').html(`${parseInt(localStorage.getItem('totalPrice')) + parseInt($('.total-delivery').text())} &#8381;`);
+}
+
+if ($('.card-sidebar__sub-text span').text() === 'NaN RUB') {
+  $('.card-sidebar__sub-text span').text('3000 RUB');
+}
+
+let product = location.href.split('.')[0].split('/');
+let getUrl;
+if (product[3] === 'card') {
+  product = location.href.match(/id=./)[0].split('=');
+  input.val(1);
+  getUrl = `/php-scripts/cart-add.php?count=${$('.qty').val()}&price=${$('#totalPrice').text()}&id=${product[1]}`;
+} else {
+  product = getUrl = null;
+}
+
+if (readCookie('authorized') === null) {
+  localStorage.removeItem('price');
+} else {
+  $('.card-sidebar__sub-text span').html(`${parseInt($('.progress-input span').text()) - parseInt(localStorage.getItem('price'))} RUB`);
+  $('.progress-line div').css({'width': `${(localStorage.getItem('price') / parseInt($('.progress-input span').text())) * 100}%`});
+  $('#totalPriceBlock').html(`${localStorage.getItem('totalPrice')}`);
+  if (parseInt(localStorage.getItem('price')) === 3000) {
+    $('.total-delivery').html('0 &#8381;');
+  }
+}
+
+$(function () {
+
+    let previousText = +$('#totalPrice').text();
     // валидация
     input.on('input', function () {
-        counter = $(this).val();
-        if (isNaN(counter) || $(this).val() === '' || $(this).val()[1] === '.' || $(this).val()[0] === '0' || $(this).val() > 99) {
-            counter = 1;
-            $(this).val(counter);
+        if ($(this).val() === '' || $(this).val()[1] === '.' || $(this).val()[0] === '0' || $(this).val() > 99) {
+            $(this).val(1);
+        } else {
+          $('#totalPrice').html(previousText * $(this).val());
+        }
+        if (location.href.split('.')[0].split('/')[3] === 'card') {
+          getUrl = `/php-scripts/cart-add.php?count=${$('.qty').val()}&price=${$('#totalPrice').text()}&id=${product[1]}`;
+          $('.card-sidebar__btns-cart').attr('href', getUrl);
+        } else {
+          const price = parseInt($($(this).closest('.cart__goods-item').children()[4]).text());
+          const blockPrice = $($($(this).closest('.cart__goods-item').children()[4]).children()[0]);
+          const href = parseInt($($(this).closest('.cart__goods-item').children()[1]).children().attr('href').split('=')[1]);
+          const val = parseInt($(this).val());
+          blockPrice.html($(this).closest('.cart__goods-item').data().price * val);
+          $.ajax({
+            type: 'POST',
+            url: '/php-scripts/cart-actions.php',
+            data: `contact_submit=1&count=${val}&price=${blockPrice.text()}&id=${href}`,
+            dataType: 'json',
+            success: function(response) {
+
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(errorThrown);
+           }
+          });
+          total = 0;
+          for (let i = 0; i < $('.cart__goods-item').length; i++) {
+            total += parseInt($($('.cart__goods-price span')[i]).text());
+          }
+          $('.card-sidebar__total-amount span span').html(total);
+          $('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__discount span span').text())} &#8381;`);
+          localStorage.setItem('price', $('.card-sidebar__total-amount span span').text());
+          if (localStorage.getItem('price') > 3000) {
+            localStorage.setItem('price', 3000);
+          }
+          $('.card-sidebar__sub-text.cart--ml span').html(`${parseInt($('span.cart--fz').text()) - parseInt(localStorage.getItem('price'))} RUB`);
+          $('.progress-line div').css({'width': `${(localStorage.getItem('price') / parseInt($('span.cart--fz').text())) * 100}%`});
         }
     });
 
+
     // минус
     $('.input-range__minus').on('click', function () {
-        if (counter <= 1) {
+        if ($(this).next().val() <= 1) {
             return;
         } else {
-            $(this).next().val(--counter);
+            $(this).next().val(+$(this).next().val() - 1);
+            $('#totalPrice').html(+$('#totalPrice').text() - previousText);
+        }
+        if (location.href.split('.')[0].split('/')[3] === 'card') {
+          getUrl = `/php-scripts/cart-add.php?count=${$('.qty').val()}&price=${$('#totalPrice').text()}&id=${product[1]}`;
+          $('.card-sidebar__btns-cart').attr('href', getUrl);
+        } else {
+          const price = parseInt($($(this).closest('.cart__goods-item').children()[4]).text());
+          const blockPrice = $($($(this).closest('.cart__goods-item').children()[4]).children()[0]);
+          const href = parseInt($($(this).closest('.cart__goods-item').children()[1]).children().attr('href').split('=')[1]);
+          blockPrice.html(price - (price / (parseInt($(this).next().val()) + 1)));
+          $.ajax({
+            type: 'POST',
+            url: '/php-scripts/cart-actions.php',
+            data: `contact_submit=1&count=${$(this).next().val()}&price=${blockPrice.text()}&id=${href}`,
+            dataType: 'json',
+            success: function(response) {
+              
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(errorThrown);
+           }
+          });
+          total -= parseInt(blockPrice.text()) / $(this).next().val();
+          $('.card-sidebar__total-amount span span').html(total);
+          $('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__discount span span').text())} &#8381;`);
+          localStorage.setItem('price', $('.card-sidebar__total-amount span span').text());
+          if (localStorage.getItem('price') > 3000) {
+            localStorage.setItem('price', 3000);
+          }
+          $('.card-sidebar__sub-text.cart--ml span').html(`${parseInt($('span.cart--fz').text()) - parseInt(localStorage.getItem('price'))} RUB`);
+          $('.progress-line div').css({'width': `${(localStorage.getItem('price') / parseInt($('span.cart--fz').text())) * 100}%`});
         }
     });
 
     // плюс
     $('.input-range__plus').on('click', function (e) {
-        if (counter >= 99) {
+        if ($(this).prev().val() >= 99) {
             return;
         } else {
-            $(this).prev().val(++counter);
+            $(this).prev().val(+$(this).prev().val() + 1);
+            $('#totalPrice').html(previousText + +$('#totalPrice').text());
+        }
+        if (location.href.split('.')[0].split('/')[3] === 'card') {
+          getUrl = `/php-scripts/cart-add.php?count=${$('.qty').val()}&price=${$('#totalPrice').text()}&id=${product[1]}`;
+          $('.card-sidebar__btns-cart').attr('href', getUrl);
+        } else {
+          const price = parseInt($($(this).closest('.cart__goods-item').children()[4]).text());
+          const blockPrice = $($($(this).closest('.cart__goods-item').children()[4]).children()[0]);
+          const href = parseInt($($(this).closest('.cart__goods-item').children()[1]).children().attr('href').split('=')[1]);
+          blockPrice.html((price / ($(this).prev().val() - 1)) + price);
+          $.ajax({
+            type: 'POST',
+            url: '/php-scripts/cart-actions.php',
+            data: `contact_submit=1&count=${$(this).prev().val()}&price=${blockPrice.text()}&id=${href}`,
+            dataType: 'json',
+            success: function(response) {
+              
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(errorThrown);
+           }
+          });
+          total += parseInt(blockPrice.text()) / $(this).prev().val();
+          $('.card-sidebar__total-amount span span').html(total);
+          $('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__discount span span').text())} &#8381;`);
+          localStorage.setItem('price', $('.card-sidebar__total-amount span span').text());
+          if (localStorage.getItem('price') > 3000) {
+            localStorage.setItem('price', 3000);
+          }
+          $('.card-sidebar__sub-text.cart--ml span').html(`${parseInt($('span.cart--fz').text()) - parseInt(localStorage.getItem('price'))} RUB`);
+          $('.progress-line div').css({'width': `${(localStorage.getItem('price') / parseInt($('span.cart--fz').text())) * 100}%`});
         }
     });
 
@@ -349,19 +549,15 @@ $(function() {
         let placeholderLength = $(this).text().length;
         // adaptive select arrow
         if (placeholderLength < 10 && windowWidth > 500) {
-            console.log('low, not adaptive');
             placeholderLength += 100;
         } else if (placeholderLength < 10 && windowWidth <= 500) {
-            console.log('low, adaptive');
             placeholderLength += 75;
         } else if (placeholderLength > 9 && windowWidth > 500) {
-            console.log('high, not adaptive');
             placeholderLength += 130;
             if (Number(($(this).text())[0])) {
                 placeholderLength = 125;
             }
         } else if (placeholderLength > 9 && windowWidth <= 500) {
-            console.log('high, adaptive');
             placeholderLength += 93;
             if (Number(($(this).text())[0])) {
                 placeholderLength = 93;
@@ -406,6 +602,25 @@ $(function() {
       } else {
         location.href = '/cabinet.php';
         }
+    });
+    $('.reviews-add').on('click', () => {
+        if (+readCookie('authorized') === 0) {
+          $('.log-modal').addClass('show');
+        } else {
+          $('.reviews-modal').addClass('show');
+        }
+    });
+
+    $('.navbar__cart').on('click', () => {
+      if (+readCookie('authorized') === 0) {
+        $('.log-modal').addClass('show');
+      } else {
+        location.href = '/cart.php';
+      }
+    });
+
+    $('.reviews-modal__close').on('click', () => {
+      $('.reviews-modal').removeClass('show');
     });
 
     $('.log-modal button:first-child').on('click', () => {
@@ -476,6 +691,16 @@ $(function () {
                 $('.reg-modal').removeClass('show');
             }
         }
+        // закрытие окна отзывов при клике вне блока
+        if ($('.reviews-modal').hasClass('show')) {
+          if ($(e.target).hasClass('show')) {
+              $('.reviews-modal').removeClass('show');
+          }
+      }
+    });
+
+    $('textarea[name="reviewText"]').on('input', function(e) {
+      $(this).next().html(`${$(this).val().length} / 500`);
     });
 
     //-----------------------------------php--------------------------------
@@ -513,7 +738,6 @@ $(function () {
         success: function(response) {
           if (response.status === 0) {
             $('#logDenied').html(response.message);
-            console.log(response);
           } else {
             location.href = '/cabinet.php';
           }
@@ -524,37 +748,138 @@ $(function () {
       });
     });
 
-    $('#personal').on('click', function(e) {
-      $.ajax({
-        type: 'POST',
-        url: '/php-scripts/cabinet-info.php',
-        success: function(response) {
-          console.log(response);
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(errorThrown);
-       }
-      });
-    });
-
-    // CABINET
-
-    $('.cabinet__personal-form').on('submit', function(e) {
+    $('.reviews-modal__form').on('submit', function(e) {
       e.preventDefault();
-
+      let mark = null;
+      if ($('.reviews-modal__stars svg.marked').hasClass('marked')) {
+        mark = $($('.reviews-modal__stars svg.marked')).data().hoverable;
+      }
       $.ajax({
         type: 'POST',
-        url: '/php-scripts/cabinet-info.php',
-        data: 'contact_submit=1&' + $(this).serialize(),
+        url: '/php-scripts/reviews-add.php',
+        data: `contact_submit=1&marked=${mark}&id=${getUrlParameter('id')}&` + $('.reviews-modal__form').serialize(),
         dataType: 'json',
         success: function(response) {
-          console.log(response.message);
+          if (response.status === 0) {
+            $('#reviewDenied').html(response.message);
+          } else {
+            location.reload();
+          }
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(errorThrown);
        }
       });
     });
+
+    $('.card-sidebar__btns-cart').attr('href', getUrl);
+
+
+    $('.booking-form').on('submit', function(e) {
+      e.preventDefault();
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/reviews-add.php',
+        data: `contact_submit=1&` + $(this).serialize(),
+        dataType: 'json',
+        success: function(response) {
+          console.log(response);
+          if (response.status === 0) {
+            $('.log-modal').addClass('show');
+          }
+          if (response.status === 2) {
+            $('#regDenied').html(response.message);
+          }
+          if (response.status === 1) {
+            location.reload();
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+       }
+      });
+    });
+
+
+    $('.cart__discount-row').on('submit', function(e) {
+      e.preventDefault();
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/codes.php',
+        data: $(this).serialize(),
+        dataType: 'json',
+        success: function(response) {
+          if (response.status) {
+            $('.card-sidebar__discount span span').html(response.price);
+            $('#regDenied').html('&nbsp;');
+            $('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__discount span span').text())} &#8381;`);
+          } else {
+            $('#regDenied').html(response.error);
+            $('.card-sidebar__discount span span').html(0);
+            $('.card-sidebar__total-pay span').html(`${total - parseInt($('.card-sidebar__discount span span').text())} &#8381;`);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    let userProducts = '';
+    let userProductsCount = '';
+
+    $('.ordering__info-form.delivery-form').on('submit', function(e) {
+      e.preventDefault();
+      for (let i = 0; i < $('.cart__goods-item').length; i++) {
+        userProducts += $($($('.cart__goods-item')[i]).children()[1]).attr('href').split('=')[1] + '/';
+        userProductsCount += $($($($('.cart__goods-item')[i]).children()[2]).children()[0]).val() + '/';
+      }
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/order-script.php',
+        data: `${$(this).serialize()}&payment=${$('input[name="payment"]').val()}&user_products=${userProducts}&products_count=${userProductsCount}`,
+        dataType: 'json',
+        success: function(response) {
+          if (response.status === 1) {
+            console.log('da');
+            location.href = '/cabinet.php';
+          } else {
+            console.log(response.message);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $('.ordering__info-form.pickup').on('submit', function(e) {
+      e.preventDefault();
+      for (let i = 0; i < $('.cart__goods-item').length; i++) {
+        userProducts += $($($('.cart__goods-item')[i]).children()[1]).attr('href').split('=')[1] + '/';
+        userProductsCount += $($($($('.cart__goods-item')[i]).children()[2]).children()[0]).val() + '/';
+      }
+      $.ajax({
+        type: 'POST',
+        url: '/php-scripts/pickup-script.php',
+        data: `${$(this).serialize()}&action=${$('input[name="action"]').val()}&user_products=${userProducts}&products_count=${userProductsCount}`,
+        dataType: 'json',
+        success: function(response) {
+          if (response.status === 1) {
+            console.log('da');
+            location.href = '/cabinet.php';
+          } else {
+            console.log(response.message);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(errorThrown);
+        }
+      });
+    });
+
+
+
 
     // hoverable event
     function togglerOn(e) {
@@ -575,8 +900,24 @@ $(function () {
         for (let i = 0; i < $(this).data().hoverable; i++) {
             $($('.reviews-modal__stars svg')[i]).find('rect').css({ 'fill': '#00AC4E' });
         }
+        $(this).addClass('marked');
         $(this).nextAll().find('rect').css({ 'fill': '#979797' });
         $('.reviews-modal__stars svg').off('mouseout', togglerOn);
         $('.reviews-modal__stars svg').off('mouseover', togglerOff);
-    })
+    });
+
+    var getUrlParameter = function getUrlParameter(sParam) {
+      var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+          sURLVariables = sPageURL.split('&'),
+          sParameterName,
+          i;
+  
+      for (i = 0; i < sURLVariables.length; i++) {
+          sParameterName = sURLVariables[i].split('=');
+  
+          if (sParameterName[0] === sParam) {
+              return sParameterName[1] === undefined ? true : sParameterName[1];
+          }
+      }
+  };
 });

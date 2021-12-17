@@ -1,69 +1,56 @@
-<div class="cabinet__history">
-    <div class="cabinet__info">
-        <p class="cabinet__info-row"><b>Номер заказа:</b> <span id="order">Заказ №2334678954</span></p>
-        <p class="cabinet__info-row"><b>Способ оплаты:</b> <span>Банковская карта</span></p>
-        <p class="cabinet__info-row"><b>Дата заказа:</b> <span>19.05.2020</span></p>
-        <p class="cabinet__info-row"><b>Дата доставки:</b> <span>23.05.2020</span></p>
-        <p class="cabinet__info-row"><b>Статус заказа:</b> <span id="status">Доставлен</span></p>
-    </div>
-    <div class="cabinet__products">
-        <ul class="cart__goods-list history--mb">
-            <li class="cart__goods-item">
-                <div class="cart__goods-img"></div>
-                <span class="cart__goods-name">Хачапури</span>
-                <div class="input-range ordering--bp">
-                    <input type="number" name="qty" class="qty" maxlength="2" disabled>
+<div class="cabinet__inner">
+    <?php
+    $query = mysqli_query($conn, "SELECT * FROM orders WHERE {$_COOKIE['authorized']} = user_id");
+    if (mysqli_num_rows($query) > 0) {
+        while ($result = mysqli_fetch_assoc($query)) {
+    ?>
+            <div class="cabinet__history">
+                <div class="cabinet__info">
+                    <p class="cabinet__info-row"><b>Номер заказа:</b> <span id="order">Заказ №<?= $result['id']; ?></span></p>
+                    <p class="cabinet__info-row"><b>Способ оплаты:</b> <span><?= $result['payment']; ?></span></p>
+                    <p class="cabinet__info-row"><b>Дата заказа:</b> <span><?= $result['order_date']; ?></span></p>
+                    <p class="cabinet__info-row"><b>Статус заказа:</b> <span id="status"><?= $result['order_status']; ?></span></p>
                 </div>
-                <span class="cart__goods-price">350 &#8381;</span>
-            </li>
+                <div class="cabinet__products">
+                    <ul class="cart__goods-list history--mb">
+                        <?php
+                        $products = explode('/', $result['user_products']);
+                        array_pop($products);
+                        $productsCount = explode('/', $result['products_count']);
+                        array_pop($productsCount);
+                        $i = 0;
+                        foreach ($products as $product) {
+                            $sql = mysqli_query($conn, "SELECT * FROM products WHERE id = $product");
+                            $productResult = mysqli_fetch_assoc($sql);
+                        ?>
+                            <li class="cart__goods-item">
+                                <a href="/card.php?id=<?= $productResult['id']; ?>"><img class="cart__goods-img" src="<?= $productResult['product_img']; ?>"></a>
+                                <a href="/card.php?id=<?= $productResult['id']; ?>"><span class="cart__goods-name"><?= $productResult['product_name']; ?></span></a>
+                                <div class="input-range ordering--bp">
+                                    <input type="number" name="qty" class="qty" maxlength="2" disabled value="<?= $productsCount[$i]; ?>">
+                                </div>
+                                <span class="cart__goods-price"><?= $productResult['product_price'] * $productsCount[$i]; ?> &#8381;</span>
+                            </li>
+                        <?php
+                        $i++;
+                        }
+                        ?>
 
-            <li class="cart__goods-item">
-                <div class="cart__goods-img"></div>
-                <span class="cart__goods-name">Хачапури</span>
-                <div class="input-range ordering--bp">
-                    <input type="number" name="qty" class="qty" maxlength="2" disabled>
-                </div>
-                <span class="cart__goods-price">350 &#8381;</span>
-            </li>
-        </ul>
-        <button class="cabinet__products-repeat">
-            <span>Повторить заказ</span>
-            <img src="img/repeat.svg" alt="repeat">
-        </button>
-    </div>
-</div>
 
-<div class="cabinet__history">
-    <div class="cabinet__info">
-        <p class="cabinet__info-row"><b>Номер заказа:</b> <span id="order">Заказ №2334678954</span></p>
-        <p class="cabinet__info-row"><b>Способ оплаты:</b> <span>Банковская карта</span></p>
-        <p class="cabinet__info-row"><b>Дата заказа:</b> <span>19.05.2020</span></p>
-        <p class="cabinet__info-row"><b>Дата доставки:</b> <span>23.05.2020</span></p>
-        <p class="cabinet__info-row"><b>Статус заказа:</b> <span id="status" style="color: #EB5757;">Отменён</span></p>
-    </div>
-    <div class="cabinet__products">
-        <ul class="cart__goods-list history--mb">
-            <li class="cart__goods-item">
-                <div class="cart__goods-img"></div>
-                <span class="cart__goods-name">Хачапури</span>
-                <div class="input-range ordering--bp">
-                    <input type="number" name="qty" class="qty" maxlength="2">
+                    </ul>
+                    <button class="cabinet__products-repeat">
+                        <span>Повторить заказ</span>
+                        <img src="img/repeat.svg" alt="repeat">
+                    </button>
                 </div>
-                <span class="cart__goods-price">350 &#8381;</span>
-            </li>
+            </div>
 
-            <li class="cart__goods-item">
-                <div class="cart__goods-img"></div>
-                <span class="cart__goods-name">Хачапури по аджарски</span>
-                <div class="input-range ordering--bp">
-                    <input type="number" name="qty" class="qty" maxlength="2">
-                </div>
-                <span class="cart__goods-price">12505 &#8381;</span>
-            </li>
-        </ul>
-        <button class="cabinet__products-repeat active">
-            <span>Повторить заказ</span>
-            <img src="img/repeat.svg" alt="repeat">
-        </button>
-    </div>
+        <?php
+        }
+        ?>
+    <?php
+    } else {
+        echo "Заказов нет";
+    }
+    ?>
 </div>

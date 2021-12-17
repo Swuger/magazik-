@@ -31,7 +31,7 @@
             </div>
             <div class="footer-right">
                 <div class="person">
-                    <a href="#">
+                    <a href="#0>
                         <img src="../img/person-white.svg" alt="person">
                         <span>Войти / Регистрация</span>
                     </a>
@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <span class="footer-bottom__item">©2020. Пиросмани</span>
+            <span class="footer-bottom__item">©2021. Пиросмани</span>
             <a class="footer-bottom__item" href="#">Условия и соглашения</a>
             <a class="footer-bottom__item" href="#">Политика конфиденциальности</a>
         </div>

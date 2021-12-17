@@ -1,10 +1,8 @@
-<div class="card-content__desc">
-    <h4 class="card-content__desc-title">Описание</h4>
-    <p class="card-content__desc-text">Полутвердый пластичный однородный сыр, слегка ломкий
-        на изгибе. Пажитник придает легкое ореховое послевкусие. В Италии считается столовым
-        сыром, который подходит к любому времени суток и к любому блюду и к вину
-    </p>
-    <p class="card-content__desc-text">Вес головки 500 г. +/-10%. Цена за 1 кг.</p>
-    <p class="card-content__desc-text">Продукция компании Alpenville изготовлена
-        преимущественно из Шарангского молока</p>
+<div class="card-content__wrapper active">
+    <div class="card-content__desc">
+        <h4 class="card-content__desc-title">Описание</h4>
+        <p class="card-content__desc-text">
+            <?= $result['product_desc']; ?>
+        </p>
+    </div>
 </div>
